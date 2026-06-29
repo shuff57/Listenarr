@@ -16,6 +16,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+using Listenarr.Api.Plugins;
 using Listenarr.Api.Startup;
 using Listenarr.Infrastructure.DependencyInjection;
 using Listenarr.Infrastructure.FileSystem;
@@ -27,6 +28,9 @@ var builder = ListenarrBuilderFactory.Create(args, realtimeLogSink, bootstrapFil
 
 builder.AddListenarrApiServices(bootstrapFileSystem);
 builder.Services.AddListenarrInfrastructureComposition(builder.Configuration, builder.Environment);
+
+// Load any plugins dropped into the app's plugins/ folder. No-op on a stock install.
+builder.AddListenarrPlugins(Path.Combine(AppContext.BaseDirectory, "plugins"));
 
 var app = builder.Build();
 

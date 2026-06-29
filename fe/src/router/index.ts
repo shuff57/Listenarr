@@ -20,7 +20,11 @@ import { useAuthStore } from '@/stores/auth'
 import { getStartupConfigCached } from '@/services/startupConfigCache'
 import { logger } from '@/utils/logger'
 import { setRouter } from '@/services/routerInstance'
+import { plugins } from '@/plugins'
 import type { StartupConfig } from '@/types'
+
+// Routes contributed by registered plugins (empty in a stock install).
+const pluginRoutes = plugins.flatMap((p) => p.routes ?? [])
 
 // Module-level cache/promise for startup config to avoid repeated requests during rapid navigation
 // Use a promise so concurrent navigations share the same inflight request instead of issuing many
@@ -158,7 +162,7 @@ export function preloadRoute(nameOrPath: string) {
 export function createAppRouter() {
   const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
-    routes,
+    routes: [...routes, ...pluginRoutes],
   })
 
   // Navigation guard: protect routes requiring auth and preserve redirectTo

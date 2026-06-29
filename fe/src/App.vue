@@ -524,6 +524,11 @@
 
     <!-- Global toast notifications -->
     <GlobalToast />
+
+    <!-- Plugin root components (e.g. a floating player bar). Empty in a stock install. -->
+    <template v-for="p in plugins" :key="p.id">
+      <component v-if="p.root" :is="p.root" />
+    </template>
   </div>
 </template>
 
@@ -571,6 +576,7 @@ import { normalizeQueueSnapshot } from '@/utils/queueSnapshot'
 import type { QueueItem } from '@/types'
 import { ref as vueRef, ref as vueRef2, reactive } from 'vue'
 import GlobalToast from '@/components/ui/GlobalToast.vue'
+import { plugins } from '@/plugins'
 import { useToast } from '@/services/toastService'
 import { logger } from '@/utils/logger'
 import BrandLogo from '@/components/base/BrandLogo.vue'
