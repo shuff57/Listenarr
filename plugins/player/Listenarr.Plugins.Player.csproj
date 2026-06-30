@@ -10,6 +10,8 @@
          dependency set is present for scaffolding: /p:PluginExcludeAssets=none /p:PluginPrivate=true -->
     <PluginExcludeAssets Condition="'$(PluginExcludeAssets)'==''">runtime</PluginExcludeAssets>
     <PluginPrivate Condition="'$(PluginPrivate)'==''">false</PluginPrivate>
+    <!-- The test project lives under tests/; keep it out of the plugin assembly. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);tests\**;tests/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
