@@ -51,34 +51,38 @@ function injectCard(card: HTMLElement, id: number): void {
   container.appendChild(btn)
 }
 
-// Prominent labeled Play/Resume button next to the title on the core detail page.
+// Squircle Play button in the detail toolbar, immediately left of the Edit button
+// (matches the other icon-button squircles). Falls back to next-to-title if Edit isn't found.
 function injectDetail(root: HTMLElement, id: number): void {
   if (root.querySelector('.lp-detail-play')) return
-  const title = root.querySelector('h1.title') as HTMLElement | null
-  if (!title) return
 
   const btn = document.createElement('button')
   btn.className = 'lp-detail-play'
   btn.type = 'button'
-  btn.innerHTML = `${PLAY_SVG}<span>Play</span>`
+  btn.title = 'Play'
+  btn.setAttribute('aria-label', 'Play')
+  btn.innerHTML = PLAY_SVG
   btn.addEventListener('click', (e) => {
     e.preventDefault()
     e.stopPropagation()
     play(id)
   })
-  title.insertAdjacentElement('afterend', btn)
 
-  // Best-effort: label "Resume" + position when there's saved progress.
+  const editBtn = root.querySelector('button[aria-label="Edit Metadata"]') as HTMLElement | null
+  if (editBtn?.parentElement) {
+    editBtn.parentElement.insertBefore(btn, editBtn)
+  } else {
+    const title = root.querySelector('h1.title') as HTMLElement | null
+    if (!title) return
+    title.insertAdjacentElement('afterend', btn)
+  }
+
+  // Best-effort: reflect saved progress in the tooltip.
   void playerApi
     .getPlayback(id)
     .then((state) => {
-      const label = btn.querySelector('span')
-      if (!label) return
-      if (state.finished) {
-        label.textContent = 'Play again'
-      } else if (state.positionSeconds > 0) {
-        label.textContent = 'Resume'
-      }
+      btn.title = state.finished ? 'Play again' : state.positionSeconds > 0 ? 'Resume' : 'Play'
+      btn.setAttribute('aria-label', btn.title)
     })
     .catch(() => {})
 }
@@ -98,8 +102,8 @@ function ensureStyles(): void {
     'transition:opacity .15s ease,transform .15s ease;padding:0}',
     '.audiobook-item:hover .lp-inject-play,.audiobook-poster-container:hover .lp-inject-play{opacity:1;transform:scale(1)}',
     '.lp-inject-play:hover{filter:brightness(1.1)}',
-    '.lp-detail-play{display:inline-flex;align-items:center;gap:.4rem;margin:.5rem 0;padding:.5rem 1.1rem;',
-    'background:var(--brand-500,#2b7de9);color:#fff;border:none;border-radius:6px;font-size:1rem;cursor:pointer}',
+    '.lp-detail-play{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;',
+    'padding:0;background:var(--brand-500,#2b7de9);color:#fff;border:none;border-radius:10px;cursor:pointer}',
     '.lp-detail-play:hover{filter:brightness(1.1)}',
   ].join('')
   document.head.appendChild(s)
