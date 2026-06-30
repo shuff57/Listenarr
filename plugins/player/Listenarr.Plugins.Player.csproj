@@ -5,6 +5,11 @@
     <!-- Plugin assembly: emit deps.json and resolve as a dynamically-loaded plugin. -->
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- Runtime: don't copy core assemblies (host already has them; copies would load as
+         duplicate types and break DI). Design-time (dotnet ef) overrides these so the full
+         dependency set is present for scaffolding: /p:PluginExcludeAssets=none /p:PluginPrivate=true -->
+    <PluginExcludeAssets Condition="'$(PluginExcludeAssets)'==''">runtime</PluginExcludeAssets>
+    <PluginPrivate Condition="'$(PluginPrivate)'==''">false</PluginPrivate>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,10 +23,10 @@
 
   <!-- Core is already present in /app at runtime; reference for compile only, don't copy. -->
   <ItemGroup>
-    <ProjectReference Include="..\..\listenarr.api\Listenarr.Api.csproj" Private="false" ExcludeAssets="runtime" />
-    <ProjectReference Include="..\..\listenarr.application\Listenarr.Application.csproj" Private="false" ExcludeAssets="runtime" />
-    <ProjectReference Include="..\..\listenarr.domain\Listenarr.Domain.csproj" Private="false" ExcludeAssets="runtime" />
-    <ProjectReference Include="..\..\listenarr.infrastructure\Listenarr.Infrastructure.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\..\listenarr.api\Listenarr.Api.csproj" Private="$(PluginPrivate)" ExcludeAssets="$(PluginExcludeAssets)" />
+    <ProjectReference Include="..\..\listenarr.application\Listenarr.Application.csproj" Private="$(PluginPrivate)" ExcludeAssets="$(PluginExcludeAssets)" />
+    <ProjectReference Include="..\..\listenarr.domain\Listenarr.Domain.csproj" Private="$(PluginPrivate)" ExcludeAssets="$(PluginExcludeAssets)" />
+    <ProjectReference Include="..\..\listenarr.infrastructure\Listenarr.Infrastructure.csproj" Private="$(PluginPrivate)" ExcludeAssets="$(PluginExcludeAssets)" />
   </ItemGroup>
 
 </Project>
