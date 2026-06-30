@@ -1,6 +1,7 @@
 using Listenarr.Api.Plugins;
 using Listenarr.Infrastructure.Persistence;
 using Listenarr.Plugins.Player.Data;
+using Listenarr.Plugins.Player.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +33,11 @@ public sealed class PlayerPlugin : IListenarrPlugin
 
         services.AddHostedService<PlayerMigrationRunner>();
 
-        // Phase C+ registers playback/bookmark services here.
+        services.AddScoped<ChapterProbe>();
+        services.AddScoped<IPlaybackService, PlaybackService>();
+        services.AddScoped<IBookmarkService, BookmarkService>();
+        services.AddScoped<IBookmarkRepository, EfPlayerBookmarkRepository>();
+
         Console.WriteLine("[player] plugin loaded");
     }
 }

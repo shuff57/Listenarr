@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+  </ItemGroup>
+
+  <!-- Reference the plugin (don't copy core via the plugin), plus core directly so its
+       runtime assemblies are present in the test output. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Listenarr.Plugins.Player.csproj" />
+    <ProjectReference Include="..\..\..\listenarr.domain\Listenarr.Domain.csproj" />
+    <ProjectReference Include="..\..\..\listenarr.application\Listenarr.Application.csproj" />
+    <ProjectReference Include="..\..\..\listenarr.infrastructure\Listenarr.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

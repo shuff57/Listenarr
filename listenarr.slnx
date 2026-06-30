@@ -24,5 +24,6 @@
   <Project Path="listenarr.api/Listenarr.Api.csproj" />
   <Folder Name="/plugins/">
     <Project Path="plugins/player/Listenarr.Plugins.Player.csproj" />
+    <Project Path="plugins/player/tests/Listenarr.Plugins.Player.Tests.csproj" />
   </Folder>
 </Solution>
