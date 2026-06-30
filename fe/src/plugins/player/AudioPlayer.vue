@@ -396,7 +396,7 @@ import {
 import { usePlayerStore } from './store'
 import type { Chapter } from './types'
 import { playerApi } from './api'
-import { buildApiPath } from '@/services/apiBase'
+import { buildApiPath } from './sdk'
 
 const SPEEDS = [0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3]
 

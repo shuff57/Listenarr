@@ -23,7 +23,12 @@ public static class PluginLoader
         var assemblies = new List<Assembly>();
         var plugins = new List<IListenarrPlugin>();
 
-        foreach (var dll in Directory.GetFiles(pluginsDir, "*.dll"))
+        // Support both a flat layout (plugins/*.dll) and self-contained packages
+        // (plugins/<id>/<id>.dll alongside plugin.json + ui/ for runtime-installable plugins).
+        var dlls = Directory.GetFiles(pluginsDir, "*.dll")
+            .Concat(Directory.GetDirectories(pluginsDir).SelectMany(d => Directory.GetFiles(d, "*.dll")));
+
+        foreach (var dll in dlls)
         {
             Assembly assembly;
             try

@@ -30,7 +30,8 @@ builder.AddListenarrApiServices(bootstrapFileSystem);
 builder.Services.AddListenarrInfrastructureComposition(builder.Configuration, builder.Environment);
 
 // Load any plugins dropped into the app's plugins/ folder. No-op on a stock install.
-builder.AddListenarrPlugins(Path.Combine(AppContext.BaseDirectory, "plugins"));
+var pluginsDir = Path.Combine(AppContext.BaseDirectory, "plugins");
+builder.AddListenarrPlugins(pluginsDir);
 
 var app = builder.Build();
 
@@ -38,6 +39,9 @@ app.Services.ApplyListenarrDatabaseMigrations();
 await app.RunListenarrStartupTasksAsync();
 
 realtimeLogSink.InitializeListenarrRealtimeLogging(app.Services);
+
+// Serve runtime-installable plugin frontends (manifest + ui assets) before the SPA fallback.
+app.UseListenarrPluginAssets(pluginsDir);
 
 app.UseListenarrRequestPipeline(endpoints => endpoints.MapListenarrRealtimeHubs(app.Environment));
 

@@ -39,13 +39,17 @@ RUN apt-get update \
 RUN dotnet build "Listenarr.Api.csproj" -c Release -o /app/build \
 	&& dotnet publish "Listenarr.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Build the player plugin and bundle ONLY its own assembly into the published plugins/ folder.
-# Core assemblies already live in /app/publish; copying them here would make the plugin load
-# duplicate types and break DI. Runtime asset exclusion keeps core out of the plugin build,
-# and we copy just the plugin dll to be safe.
+# Package the player as a self-contained, runtime-installable plugin:
+#   plugins/player/{Listenarr.Plugins.Player.dll, plugin.json, ui/player.js, ui/player.css}
+# Only the plugin's own assembly is copied (core lives in /app; duplicates would break DI).
+# The UI is built as a standalone IIFE bundle the host loads at runtime via window.LISTENARR.
+# node_modules already exists in /src/fe from the frontend build during `dotnet publish`.
 RUN dotnet build "/src/plugins/player/Listenarr.Plugins.Player.csproj" -c Release -o /tmp/plugin --nologo \
-	&& mkdir -p /app/publish/plugins \
-	&& cp /tmp/plugin/Listenarr.Plugins.Player.dll /app/publish/plugins/
+	&& (cd /src/fe && npx vite build --config vite.plugin.player.config.ts) \
+	&& mkdir -p /app/publish/plugins/player/ui \
+	&& cp /tmp/plugin/Listenarr.Plugins.Player.dll /app/publish/plugins/player/ \
+	&& cp /src/plugins/player/plugin.json /app/publish/plugins/player/ \
+	&& cp /src/fe/dist-plugins/player/* /app/publish/plugins/player/ui/
 
 FROM base AS final
 WORKDIR /app

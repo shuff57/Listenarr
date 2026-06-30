@@ -7,24 +7,47 @@
  * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-import type { Component } from 'vue'
-import type { RouteRecordRaw } from 'vue-router'
+import { ref, markRaw, type Component } from 'vue'
+import type { RouteRecordRaw, Router } from 'vue-router'
 
 /**
  * A frontend plugin contributes an optional always-mounted root component (e.g. a floating
- * player bar) and/or routes. Generic and plugin-agnostic; the core knows nothing about any
- * specific plugin.
+ * player bar) and/or routes. Plugins are loaded at runtime (see runtime.ts) from packages
+ * dropped into the host's plugins/ folder — no rebuild required.
  */
 export interface ListenarrPlugin {
   id: string
-  /** Persistent component mounted app-wide, outside the router view. */
   root?: Component
-  /** Routes contributed to the app router. */
   routes?: RouteRecordRaw[]
 }
 
-// Empty upstream. Fork builds register their plugins here (the only file a fork edits to
-// add one).
-import { playerPlugin } from './player'
+/** Reactive registry; App.vue renders each plugin's root, router gets each plugin's routes. */
+export const plugins = ref<ListenarrPlugin[]>([])
 
-export const plugins: ListenarrPlugin[] = [playerPlugin]
+let router: Router | null = null
+
+/** Called once by the app after the router is created, so runtime registrations can add routes. */
+export function setPluginRouter(r: Router): void {
+  router = r
+}
+
+/** Register a plugin at runtime. Idempotent by id. Adds routes to the live router. */
+export function registerPlugin(plugin: ListenarrPlugin): void {
+  if (!plugin?.id || plugins.value.some((p) => p.id === plugin.id)) {
+    return
+  }
+
+  plugins.value = [
+    ...plugins.value,
+    { id: plugin.id, root: plugin.root ? markRaw(plugin.root) : undefined, routes: plugin.routes },
+  ]
+
+  if (router && plugin.routes) {
+    for (const route of plugin.routes) {
+      const name = route.name as string | undefined
+      if (!name || !router.hasRoute(name)) {
+        router.addRoute(route)
+      }
+    }
+  }
+}
