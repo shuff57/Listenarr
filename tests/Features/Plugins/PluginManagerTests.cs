@@ -22,10 +22,16 @@ public class PluginManagerTests
             var zip = Path.Combine(work, "ok.zip");
             using (var archive = ZipFile.Open(zip, ZipArchiveMode.Create))
             {
-                using var w = new StreamWriter(archive.CreateEntry("plugin.json").Open());
-                w.Write("{\"id\":\"demo\"}");
-                using var w2 = new StreamWriter(archive.CreateEntry("ui/app.js").Open());
-                w2.Write("console.log(1)");
+                // Create mode allows only one open entry stream at a time — close each before the next.
+                using (var w = new StreamWriter(archive.CreateEntry("plugin.json").Open()))
+                {
+                    w.Write("{\"id\":\"demo\"}");
+                }
+
+                using (var w2 = new StreamWriter(archive.CreateEntry("ui/app.js").Open()))
+                {
+                    w2.Write("console.log(1)");
+                }
             }
 
             var dest = Path.Combine(work, "out");
