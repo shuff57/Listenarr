@@ -115,6 +115,18 @@ public sealed partial class PlaybackService(
             .ToList();
     }
 
+    public async Task<IReadOnlyList<ContinueListeningItem>> GetStatesAsync(CancellationToken ct = default)
+    {
+        var rows = await db.PlaybackStates.AsNoTracking()
+            .Where(s => s.UpdatedUtc != null)
+            .OrderByDescending(s => s.UpdatedUtc)
+            .ToListAsync(ct);
+
+        return rows
+            .Select(r => new ContinueListeningItem(r.AudiobookId, r.FileIndex, r.PositionSeconds, r.Finished, r.UpdatedUtc))
+            .ToList();
+    }
+
     // ── Chapter extraction & aggregation ─────────────────────────────────────
 
     private async Task<IReadOnlyList<ChapterDto>> BuildChaptersAsync(List<AudiobookFile> ordered, CancellationToken ct)

@@ -8,6 +8,10 @@ export const playerApi = {
     return request<ContinueListeningItem[]>('/audiobooks/continue-listening')
   },
 
+  getPlaybackStates(): Promise<ContinueListeningItem[]> {
+    return request<ContinueListeningItem[]>('/audiobooks/playback-states')
+  },
+
   getPlayback(id: number): Promise<PlaybackState> {
     return request<PlaybackState>(`/audiobooks/${id}/playback`)
   },

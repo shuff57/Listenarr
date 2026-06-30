@@ -2,8 +2,16 @@
 // plugin's bundle loads). Using these instead of importing core modules directly means the
 // plugin bundle never ships a second copy of apiService, the library store, etc.
 
+export interface LibraryBook {
+  id: number
+  title?: string
+  imageUrl?: string
+  authors?: string[]
+  monitored?: boolean
+}
+
 interface LibraryStore {
-  audiobooks: Array<{ id: number; title?: string; imageUrl?: string }>
+  audiobooks: LibraryBook[]
   fetchLibrary: () => Promise<void>
 }
 

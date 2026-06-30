@@ -72,6 +72,11 @@ public sealed class ListenController(
     public async Task<IActionResult> GetContinueListening(CancellationToken ct) =>
         Ok(await playback.GetContinueListeningAsync(ct));
 
+    /// <summary>All started playback rows (in-progress and finished) for building the Listen page.</summary>
+    [HttpGet("playback-states")]
+    public async Task<IActionResult> GetPlaybackStates(CancellationToken ct) =>
+        Ok(await playback.GetStatesAsync(ct));
+
     /// <summary>List all bookmarks for an audiobook.</summary>
     [HttpGet("{id:int}/bookmarks")]
     public async Task<IActionResult> GetBookmarks(int id, CancellationToken ct) =>
