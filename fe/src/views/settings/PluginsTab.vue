@@ -139,6 +139,7 @@ async function addRepo(): Promise<void> {
   busy.value = true
   repoError.value = ''
   try {
+    await apiService.ensureAntiforgeryForCurrentAuth()
     repositories.value = await apiService.pluginRequest<string[]>('/plugins/repositories', {
       method: 'POST',
       body: JSON.stringify({ url }),
@@ -155,6 +156,7 @@ async function addRepo(): Promise<void> {
 async function removeRepo(url: string): Promise<void> {
   busy.value = true
   try {
+    await apiService.ensureAntiforgeryForCurrentAuth()
     repositories.value = await apiService.pluginRequest<string[]>(
       `/plugins/repositories?url=${encodeURIComponent(url)}`,
       { method: 'DELETE' },
@@ -171,6 +173,7 @@ async function install(id: string): Promise<void> {
   busy.value = true
   error.value = ''
   try {
+    await apiService.ensureAntiforgeryForCurrentAuth()
     await apiService.pluginRequest('/plugins/install', {
       method: 'POST',
       body: JSON.stringify({ id }),
@@ -186,6 +189,7 @@ async function uninstall(id: string): Promise<void> {
   busy.value = true
   error.value = ''
   try {
+    await apiService.ensureAntiforgeryForCurrentAuth()
     await apiService.pluginRequest(`/plugins/${encodeURIComponent(id)}`, { method: 'DELETE' })
     waitForRestart()
   } catch (e) {
