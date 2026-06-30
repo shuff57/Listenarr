@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <!-- Plugin assembly: emit deps.json and resolve as a dynamically-loaded plugin. -->
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Core is already present in /app at runtime; reference for compile only, don't copy. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\listenarr.api\Listenarr.Api.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\..\listenarr.application\Listenarr.Application.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\..\listenarr.domain\Listenarr.Domain.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\..\listenarr.infrastructure\Listenarr.Infrastructure.csproj" Private="false" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+</Project>
