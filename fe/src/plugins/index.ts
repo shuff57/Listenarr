@@ -15,10 +15,18 @@ import type { RouteRecordRaw, Router } from 'vue-router'
  * player bar) and/or routes. Plugins are loaded at runtime (see runtime.ts) from packages
  * dropped into the host's plugins/ folder — no rebuild required.
  */
+export interface PluginNavItem {
+  label: string
+  to: string
+  icon?: Component
+}
+
 export interface ListenarrPlugin {
   id: string
   root?: Component
   routes?: RouteRecordRaw[]
+  /** Sidebar entries contributed by the plugin. */
+  nav?: PluginNavItem[]
 }
 
 /** Reactive registry; App.vue renders each plugin's root, router gets each plugin's routes. */
@@ -37,9 +45,15 @@ export function registerPlugin(plugin: ListenarrPlugin): void {
     return
   }
 
+  const nav = plugin.nav?.map((n) => ({ ...n, icon: n.icon ? markRaw(n.icon) : undefined }))
   plugins.value = [
     ...plugins.value,
-    { id: plugin.id, root: plugin.root ? markRaw(plugin.root) : undefined, routes: plugin.routes },
+    {
+      id: plugin.id,
+      root: plugin.root ? markRaw(plugin.root) : undefined,
+      routes: plugin.routes,
+      nav,
+    },
   ]
 
   if (router && plugin.routes) {

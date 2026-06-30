@@ -1,4 +1,5 @@
 import type { ListenarrPlugin } from '@/plugins'
+import { PhHeadphones } from '@phosphor-icons/vue'
 import AudioPlayer from './AudioPlayer.vue'
 import PlayerLibraryView from './PlayerLibraryView.vue'
 
@@ -13,4 +14,5 @@ export const playerPlugin: ListenarrPlugin = {
       meta: { requiresAuth: true },
     },
   ],
+  nav: [{ label: 'Listen', to: '/listening', icon: PhHeadphones }],
 }

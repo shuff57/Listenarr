@@ -357,6 +357,21 @@
             </RouterLink>
           </div>
 
+          <!-- Plugin-contributed sidebar entries (empty in a stock install). -->
+          <div v-if="pluginNavItems.length > 0" class="nav-section">
+            <RouterLink
+              v-for="item in pluginNavItems"
+              :key="item.pluginId + item.to"
+              :to="item.to"
+              class="nav-item"
+              :class="{ 'router-link-active': pendingNavPath === item.to }"
+              @click="closeMobileMenu"
+            >
+              <component :is="item.icon" v-if="item.icon" />
+              <span>{{ item.label }}</span>
+            </RouterLink>
+          </div>
+
           <div class="nav-section">
             <RouterLink
               to="/settings"
@@ -577,6 +592,11 @@ import type { QueueItem } from '@/types'
 import { ref as vueRef, ref as vueRef2, reactive } from 'vue'
 import GlobalToast from '@/components/ui/GlobalToast.vue'
 import { plugins } from '@/plugins'
+
+// Sidebar entries contributed by runtime-loaded plugins.
+const pluginNavItems = computed(() =>
+  plugins.value.flatMap((p) => (p.nav ?? []).map((n) => ({ ...n, pluginId: p.id }))),
+)
 import { useToast } from '@/services/toastService'
 import { logger } from '@/utils/logger'
 import BrandLogo from '@/components/base/BrandLogo.vue'
