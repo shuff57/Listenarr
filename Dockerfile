@@ -39,6 +39,14 @@ RUN apt-get update \
 RUN dotnet build "Listenarr.Api.csproj" -c Release -o /app/build \
 	&& dotnet publish "Listenarr.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
+# Build the player plugin and bundle ONLY its own assembly into the published plugins/ folder.
+# Core assemblies already live in /app/publish; copying them here would make the plugin load
+# duplicate types and break DI. Runtime asset exclusion keeps core out of the plugin build,
+# and we copy just the plugin dll to be safe.
+RUN dotnet build "/src/plugins/player/Listenarr.Plugins.Player.csproj" -c Release -o /tmp/plugin --nologo \
+	&& mkdir -p /app/publish/plugins \
+	&& cp /tmp/plugin/Listenarr.Plugins.Player.dll /app/publish/plugins/
+
 FROM base AS final
 WORKDIR /app
 COPY docker/runtime/ /tmp/listenarr-runtime/
