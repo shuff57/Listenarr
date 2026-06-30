@@ -710,11 +710,15 @@ import {
   PhFileMinus,
   PhCircle,
   PhDiscordLogo,
+  PhPlay,
 } from '@phosphor-icons/vue'
+// ponytail: fork-only overlay — in-context Play affordance backed by the player plugin.
+import { usePlayerStore } from '@/plugins/player/store'
 
 const route = useRoute()
 const router = useRouter()
 const libraryStore = useLibraryStore()
+const player = usePlayerStore()
 const configStore = useConfigurationStore()
 const rootFoldersStore = useRootFoldersStore()
 const { getProtectedImageSrc } = useProtectedImages()
@@ -753,7 +757,35 @@ const mobileTabOptions = computed(() => [
   { value: 'history', label: 'History', icon: PhClockCounterClockwise },
 ])
 
+async function playBook(): Promise<void> {
+  if (!audiobook.value?.id) return
+  await player.load(audiobook.value.id)
+  player.playing = true
+}
+
+const playActionLabel = computed(() =>
+  player.current?.audiobookId === audiobook.value?.id &&
+  player.positionSeconds > 0 &&
+  !player.current?.finished
+    ? 'Resume'
+    : 'Play',
+)
+
 const topActions = computed<DetailTopAction[]>(() => [
+  {
+    key: 'play',
+    label: playActionLabel.value,
+    title: playActionLabel.value,
+    ariaLabel: `${playActionLabel.value} audiobook`,
+    icon: PhPlay,
+    iconProps: { weight: 'fill' },
+    disabled: !audiobook.value?.files?.length,
+    desktopGroup: 'primary',
+    desktopClass: 'primary',
+    onClick: () => {
+      void playBook()
+    },
+  },
   {
     key: 'refresh',
     label: 'Refresh',
@@ -871,6 +903,7 @@ type DetailIdentifierItem = {
 
 type DetailTopAction = {
   key:
+    | 'play'
     | 'refresh'
     | 'manual-search'
     | 'scan'
