@@ -62,7 +62,7 @@ const authorText = computed(() =>
 )
 
 function open(): void {
-  router.push(`/audiobooks/${props.book.id}`)
+  router.push(`/listen/${props.book.id}`)
 }
 </script>
 

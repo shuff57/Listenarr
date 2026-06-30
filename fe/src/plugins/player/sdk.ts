@@ -7,6 +7,10 @@ export interface LibraryBook {
   title?: string
   imageUrl?: string
   authors?: string[]
+  narrators?: string[]
+  description?: string
+  subtitle?: string
+  publishYear?: number
   monitored?: boolean
 }
 
