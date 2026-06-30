@@ -15,6 +15,7 @@ export default defineConfig({
     outDir: 'dist-plugins/player',
     emptyOutDir: true,
     cssCodeSplit: false,
+    copyPublicDir: false, // don't drag the host's public/ assets into the plugin package
     lib: {
       entry: fileURLToPath(new URL('./src/plugins/player/register.ts', import.meta.url)),
       name: 'ListenarrPlayerPlugin',
