@@ -24,5 +24,7 @@ export interface ListenarrPlugin {
 }
 
 // Empty upstream. Fork builds register their plugins here (the only file a fork edits to
-// add one), e.g. `export const plugins = [playerPlugin]`.
-export const plugins: ListenarrPlugin[] = []
+// add one).
+import { playerPlugin } from './player'
+
+export const plugins: ListenarrPlugin[] = [playerPlugin]
