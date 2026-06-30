@@ -117,33 +117,34 @@ function open(): void {
   object-fit: cover;
   display: block;
 }
+/* Squircle Play button matching the native .action-btn / reference resume button. */
 .play-fab {
   position: absolute;
   top: 8px;
   right: 8px;
   z-index: 103;
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(43, 125, 233, 0.92);
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background-color: rgba(33, 150, 243, 0.9);
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-size: 14px;
   cursor: pointer;
   opacity: 0;
-  transform: scale(0.9);
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
+  transition: opacity 0.15s ease;
+}
+.play-fab svg {
+  width: 14px;
+  height: 14px;
 }
 .audiobook-poster-container:hover .play-fab {
   opacity: 1;
-  transform: scale(1);
 }
 .play-fab:hover {
-  filter: brightness(1.1);
+  background-color: rgba(33, 150, 243, 1);
 }
 .status-overlay {
   position: absolute;
