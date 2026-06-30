@@ -3,18 +3,35 @@
 // the button, styling, click handling, and re-injection on virtual-scroll re-renders —
 // lives in the plugin. No core component is modified.
 import { usePlayerStore } from './store'
+import { playerApi } from './api'
 
 const PLAY_SVG =
   '<svg viewBox="0 0 256 256" width="20" height="20" fill="currentColor"><path d="M232.4 114.5 88.4 26.6A16 16 0 0 0 64 40.3v175.4a16 16 0 0 0 24.4 13.7l144-87.9a16 16 0 0 0 0-27.4Z"/></svg>'
 
 let observer: MutationObserver | null = null
 
-function injectInto(card: HTMLElement): void {
-  if (card.querySelector('.lp-inject-play')) return
-  const idStr = card.getAttribute('data-audiobook-id')
+function play(id: number): void {
+  const player = usePlayerStore()
+  void player.load(id).then(() => {
+    player.playing = true
+  })
+}
+
+function injectInto(el: HTMLElement): void {
+  const idStr = el.getAttribute('data-audiobook-id')
   const id = Number(idStr)
   if (!idStr || !Number.isFinite(id)) return
 
+  if (el.classList.contains('audiobook-detail')) {
+    injectDetail(el, id)
+  } else {
+    injectCard(el, id)
+  }
+}
+
+// Small circular play button overlaid on a library card's poster.
+function injectCard(card: HTMLElement, id: number): void {
+  if (card.querySelector('.lp-inject-play')) return
   const container = (card.querySelector('.audiobook-poster-container') as HTMLElement) ?? card
   if (getComputedStyle(container).position === 'static') {
     container.style.position = 'relative'
@@ -29,12 +46,41 @@ function injectInto(card: HTMLElement): void {
   btn.addEventListener('click', (e) => {
     e.preventDefault()
     e.stopPropagation()
-    const player = usePlayerStore()
-    void player.load(id).then(() => {
-      player.playing = true
-    })
+    play(id)
   })
   container.appendChild(btn)
+}
+
+// Prominent labeled Play/Resume button next to the title on the core detail page.
+function injectDetail(root: HTMLElement, id: number): void {
+  if (root.querySelector('.lp-detail-play')) return
+  const title = root.querySelector('h1.title') as HTMLElement | null
+  if (!title) return
+
+  const btn = document.createElement('button')
+  btn.className = 'lp-detail-play'
+  btn.type = 'button'
+  btn.innerHTML = `${PLAY_SVG}<span>Play</span>`
+  btn.addEventListener('click', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    play(id)
+  })
+  title.insertAdjacentElement('afterend', btn)
+
+  // Best-effort: label "Resume" + position when there's saved progress.
+  void playerApi
+    .getPlayback(id)
+    .then((state) => {
+      const label = btn.querySelector('span')
+      if (!label) return
+      if (state.finished) {
+        label.textContent = 'Play again'
+      } else if (state.positionSeconds > 0) {
+        label.textContent = 'Resume'
+      }
+    })
+    .catch(() => {})
 }
 
 function scan(root: ParentNode): void {
@@ -52,6 +98,9 @@ function ensureStyles(): void {
     'transition:opacity .15s ease,transform .15s ease;padding:0}',
     '.audiobook-item:hover .lp-inject-play,.audiobook-poster-container:hover .lp-inject-play{opacity:1;transform:scale(1)}',
     '.lp-inject-play:hover{filter:brightness(1.1)}',
+    '.lp-detail-play{display:inline-flex;align-items:center;gap:.4rem;margin:.5rem 0;padding:.5rem 1.1rem;',
+    'background:var(--brand-500,#2b7de9);color:#fff;border:none;border-radius:6px;font-size:1rem;cursor:pointer}',
+    '.lp-detail-play:hover{filter:brightness(1.1)}',
   ].join('')
   document.head.appendChild(s)
 }

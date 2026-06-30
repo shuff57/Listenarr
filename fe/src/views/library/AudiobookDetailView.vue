@@ -16,7 +16,7 @@
   along with this program. If not, see <https://www.gnu.org/licenses/>.
 -->
 <template>
-  <div class="audiobook-detail" v-if="!loading && audiobook">
+  <div class="audiobook-detail" v-if="!loading && audiobook" :data-audiobook-id="audiobook.id">
     <!-- Top Navigation Bar -->
     <div class="top-nav">
       <button class="nav-btn" @click="goBack">
