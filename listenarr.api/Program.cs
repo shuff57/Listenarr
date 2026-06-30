@@ -33,6 +33,15 @@ builder.Services.AddListenarrInfrastructureComposition(builder.Configuration, bu
 var pluginsDir = Path.Combine(AppContext.BaseDirectory, "plugins");
 builder.AddListenarrPlugins(pluginsDir);
 
+// Runtime plugin manager (Settings → Plugins): install/uninstall from repositories.
+var pluginConfigDir = Path.Combine(AppContext.BaseDirectory, "config");
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton(sp => new Listenarr.Api.Plugins.PluginManager(
+    sp.GetRequiredService<IHttpClientFactory>(),
+    pluginsDir,
+    pluginConfigDir,
+    sp.GetRequiredService<ILogger<Listenarr.Api.Plugins.PluginManager>>()));
+
 var app = builder.Build();
 
 app.Services.ApplyListenarrDatabaseMigrations();
