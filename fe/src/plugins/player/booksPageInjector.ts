@@ -29,35 +29,45 @@ function injectInto(el: HTMLElement): void {
   }
 }
 
-// Small circular play button overlaid on a library card's poster.
+// Play button as the first squircle in the card's native hover action cluster,
+// styled to match the sibling edit/delete buttons. Falls back to a poster overlay.
 function injectCard(card: HTMLElement, id: number): void {
   if (card.querySelector('.lp-inject-play')) return
+
+  const btn = document.createElement('button')
+  btn.className = 'action-btn resume-btn-small lp-inject-play'
+  btn.type = 'button'
+  btn.title = 'Play'
+  btn.setAttribute('aria-label', 'Play')
+  btn.innerHTML = PLAY_SVG
+  btn.addEventListener('click', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    play(id)
+  })
+
+  const actions = card.querySelector('.action-buttons') as HTMLElement | null
+  if (actions) {
+    actions.insertBefore(btn, actions.firstChild)
+    return
+  }
+  // Fallback: overlay on the poster (still a squircle, not a circle).
   const container = (card.querySelector('.audiobook-poster-container') as HTMLElement) ?? card
   if (getComputedStyle(container).position === 'static') {
     container.style.position = 'relative'
   }
-
-  const btn = document.createElement('button')
-  btn.className = 'lp-inject-play'
-  btn.type = 'button'
-  btn.title = 'Play'
-  btn.setAttribute('aria-label', 'Play')
-  btn.innerHTML = PLAY_SVG
-  btn.addEventListener('click', (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    play(id)
-  })
+  btn.classList.add('lp-inject-play-overlay')
   container.appendChild(btn)
 }
 
-// Squircle Play button in the detail toolbar, immediately left of the Edit button
-// (matches the other icon-button squircles). Falls back to next-to-title if Edit isn't found.
+// Play button as the first action in the detail toolbar's .primary-actions cluster
+// (leftmost, native icon-button shape). Falls back to before Edit, then next-to-title.
 function injectDetail(root: HTMLElement, id: number): void {
   if (root.querySelector('.lp-detail-play')) return
 
   const btn = document.createElement('button')
-  btn.className = 'lp-detail-play'
+  // `primary` opts out of the core's `:not(.primary)` gray-background !important rule.
+  btn.className = 'nav-btn icon-button primary lp-detail-play'
   btn.type = 'button'
   btn.title = 'Play'
   btn.setAttribute('aria-label', 'Play')
@@ -68,8 +78,11 @@ function injectDetail(root: HTMLElement, id: number): void {
     play(id)
   })
 
+  const primary = root.querySelector('.primary-actions') as HTMLElement | null
   const editBtn = root.querySelector('button[aria-label="Edit Metadata"]') as HTMLElement | null
-  if (editBtn?.parentElement) {
+  if (primary) {
+    primary.insertBefore(btn, primary.firstChild)
+  } else if (editBtn?.parentElement) {
     editBtn.parentElement.insertBefore(btn, editBtn)
   } else {
     const title = root.querySelector('h1.title') as HTMLElement | null
@@ -96,15 +109,19 @@ function ensureStyles(): void {
   const s = document.createElement('style')
   s.id = 'lp-inject-style'
   s.textContent = [
-    '.lp-inject-play{position:absolute;top:8px;right:8px;z-index:103;width:40px;height:40px;',
-    'border:none;border-radius:50%;background:rgba(43,125,233,.92);color:#fff;display:inline-flex;',
-    'align-items:center;justify-content:center;cursor:pointer;opacity:0;transform:scale(.9);',
-    'transition:opacity .15s ease,transform .15s ease;padding:0}',
-    '.audiobook-item:hover .lp-inject-play,.audiobook-poster-container:hover .lp-inject-play{opacity:1;transform:scale(1)}',
-    '.lp-inject-play:hover{filter:brightness(1.1)}',
-    '.lp-detail-play{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;',
-    'padding:0;background:var(--brand-500,#2b7de9);color:#fff;border:none;border-radius:10px;cursor:pointer}',
-    '.lp-detail-play:hover{filter:brightness(1.1)}',
+    // Thumbnail: blue squircle matching the native .action-btn siblings.
+    // Two-class selectors beat core's single-class rules regardless of <style> order.
+    '.action-btn.resume-btn-small{background-color:rgba(33,150,243,.9);border-color:rgba(33,150,243,.5)}',
+    '.action-btn.resume-btn-small:hover{background-color:rgba(33,150,243,1)}',
+    '.lp-inject-play{display:inline-flex;align-items:center;justify-content:center}',
+    '.lp-inject-play svg{width:14px;height:14px}',
+    // Fallback overlay (when a card has no .action-buttons cluster).
+    '.lp-inject-play-overlay{position:absolute;top:8px;right:8px;z-index:31;opacity:0;transition:opacity .2s}',
+    '.audiobook-item:hover .lp-inject-play-overlay,.audiobook-poster-container:hover .lp-inject-play-overlay{opacity:1}',
+    // Detail: blue accent over the native .nav-btn.icon-button shape.
+    '.nav-btn.lp-detail-play{background-color:rgb(33,150,243);border-color:rgb(33,150,243)}',
+    '.nav-btn.lp-detail-play:hover{background-color:rgb(30,136,229);border-color:rgb(30,136,229)}',
+    '.lp-detail-play svg{width:20px;height:20px}',
   ].join('')
   document.head.appendChild(s)
 }
