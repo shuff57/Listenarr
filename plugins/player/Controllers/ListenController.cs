@@ -3,6 +3,7 @@ using Listenarr.Application.Common.Contracts;
 using Listenarr.Domain.Common;
 using Listenarr.Plugins.Player.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Listenarr.Plugins.Player.Controllers;
 
@@ -12,7 +13,6 @@ namespace Listenarr.Plugins.Player.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/v{version:apiVersion}/audiobooks")]
-[Tags("Listening")]
 public sealed class ListenController(
     IPlaybackService playback,
     IBookmarkService bookmarkService,
