@@ -415,6 +415,7 @@
           <div v-for="audiobook in visibleAudiobooks" :key="audiobook.id" class="audiobook-wrapper">
             <div
               tabindex="0"
+              :data-audiobook-id="audiobook.id"
               @keydown.enter="navigateToDetail(audiobook.id)"
               class="audiobook-item"
               :class="{
