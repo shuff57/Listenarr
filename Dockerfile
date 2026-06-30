@@ -49,7 +49,7 @@ RUN dotnet build "/src/plugins/player/Listenarr.Plugins.Player.csproj" -c Releas
 	&& mkdir -p /app/publish/plugins/player/ui \
 	&& cp /tmp/plugin/Listenarr.Plugins.Player.dll /app/publish/plugins/player/ \
 	&& cp /src/plugins/player/plugin.json /app/publish/plugins/player/ \
-	&& cp /src/fe/dist-plugins/player/* /app/publish/plugins/player/ui/
+	&& cp -r /src/fe/dist-plugins/player/. /app/publish/plugins/player/ui/
 
 FROM base AS final
 WORKDIR /app
