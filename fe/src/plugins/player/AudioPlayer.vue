@@ -944,11 +944,12 @@ onUnmounted(() => {
     transform 0.08s ease;
 }
 
-/* Play/pause: solid brand circle — visually dominant, 44×44 (≥40px primary target) */
+/* Play/pause: solid brand squircle (matches the other controls' shape) — visually
+   dominant, 44×44 (≥40px primary target) */
 .player-btn--play {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: var(--radius-md, 6px);
   background-color: var(--brand-500, #2196f3);
   color: #fff;
   font-size: 22px;

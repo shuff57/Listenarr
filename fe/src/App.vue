@@ -457,6 +457,14 @@
               >
                 <span>General</span>
               </RouterLink>
+              <RouterLink
+                :to="{ path: '/settings', hash: '#plugins' }"
+                class="nav-subitem"
+                @click="closeMobileMenu"
+                :class="{ active: route.hash === '#plugins' }"
+              >
+                <span>Plugins</span>
+              </RouterLink>
             </div>
             <RouterLink
               to="/system"

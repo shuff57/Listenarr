@@ -2,19 +2,50 @@
 // provides is a `data-audiobook-id` attribute per card (Hybrid B); everything here —
 // the button, styling, click handling, and re-injection on virtual-scroll re-renders —
 // lives in the plugin. No core component is modified.
+import { watch } from 'vue'
 import { usePlayerStore } from './store'
-import { playerApi } from './api'
 
+// 1em icons so injected buttons size exactly like the native .action-btn siblings.
 const PLAY_SVG =
-  '<svg viewBox="0 0 256 256" width="20" height="20" fill="currentColor"><path d="M232.4 114.5 88.4 26.6A16 16 0 0 0 64 40.3v175.4a16 16 0 0 0 24.4 13.7l144-87.9a16 16 0 0 0 0-27.4Z"/></svg>'
+  '<svg viewBox="0 0 256 256" width="1em" height="1em" fill="currentColor"><path d="M232.4 114.5 88.4 26.6A16 16 0 0 0 64 40.3v175.4a16 16 0 0 0 24.4 13.7l144-87.9a16 16 0 0 0 0-27.4Z"/></svg>'
+const PAUSE_SVG =
+  '<svg viewBox="0 0 256 256" width="1em" height="1em" fill="currentColor"><rect x="64" y="40" width="48" height="176" rx="8"/><rect x="144" y="40" width="48" height="176" rx="8"/></svg>'
 
 let observer: MutationObserver | null = null
 
-function play(id: number): void {
+// True when this book is the one loaded in the player AND currently playing.
+function isPlaying(id: number): boolean {
   const player = usePlayerStore()
-  void player.load(id).then(() => {
-    player.playing = true
-  })
+  return player.current?.audiobookId === id && player.playing
+}
+
+// Click: pause/resume if it's the current book, otherwise load it and start playing.
+function toggle(id: number): void {
+  const player = usePlayerStore()
+  if (player.current?.audiobookId === id) {
+    player.playing = !player.playing
+  } else {
+    void player.load(id).then(() => {
+      player.playing = true
+    })
+  }
+}
+
+// Reflect play/pause state on a single injected button.
+function renderIcon(btn: HTMLElement): void {
+  const id = Number(btn.dataset.lpId)
+  const playingNow = Number.isFinite(id) && isPlaying(id)
+  btn.innerHTML = playingNow ? PAUSE_SVG : PLAY_SVG
+  const label = playingNow ? 'Pause' : 'Play'
+  btn.title = label
+  btn.setAttribute('aria-label', label)
+}
+
+// Re-render every injected button (called reactively when playback state changes).
+function refreshIcons(): void {
+  document
+    .querySelectorAll<HTMLElement>('.lp-inject-play, .lp-detail-play')
+    .forEach((btn) => renderIcon(btn))
 }
 
 function injectInto(el: HTMLElement): void {
@@ -37,14 +68,13 @@ function injectCard(card: HTMLElement, id: number): void {
   const btn = document.createElement('button')
   btn.className = 'action-btn resume-btn-small lp-inject-play'
   btn.type = 'button'
-  btn.title = 'Play'
-  btn.setAttribute('aria-label', 'Play')
-  btn.innerHTML = PLAY_SVG
+  btn.dataset.lpId = String(id)
   btn.addEventListener('click', (e) => {
     e.preventDefault()
     e.stopPropagation()
-    play(id)
+    toggle(id)
   })
+  renderIcon(btn)
 
   const actions = card.querySelector('.action-buttons') as HTMLElement | null
   if (actions) {
@@ -69,14 +99,13 @@ function injectDetail(root: HTMLElement, id: number): void {
   // `primary` opts out of the core's `:not(.primary)` gray-background !important rule.
   btn.className = 'nav-btn icon-button primary lp-detail-play'
   btn.type = 'button'
-  btn.title = 'Play'
-  btn.setAttribute('aria-label', 'Play')
-  btn.innerHTML = PLAY_SVG
+  btn.dataset.lpId = String(id)
   btn.addEventListener('click', (e) => {
     e.preventDefault()
     e.stopPropagation()
-    play(id)
+    toggle(id)
   })
+  renderIcon(btn)
 
   const primary = root.querySelector('.primary-actions') as HTMLElement | null
   const editBtn = root.querySelector('button[aria-label="Edit Metadata"]') as HTMLElement | null
@@ -89,15 +118,6 @@ function injectDetail(root: HTMLElement, id: number): void {
     if (!title) return
     title.insertAdjacentElement('afterend', btn)
   }
-
-  // Best-effort: reflect saved progress in the tooltip.
-  void playerApi
-    .getPlayback(id)
-    .then((state) => {
-      btn.title = state.finished ? 'Play again' : state.positionSeconds > 0 ? 'Resume' : 'Play'
-      btn.setAttribute('aria-label', btn.title)
-    })
-    .catch(() => {})
 }
 
 function scan(root: ParentNode): void {
@@ -109,14 +129,15 @@ function ensureStyles(): void {
   const s = document.createElement('style')
   s.id = 'lp-inject-style'
   s.textContent = [
-    // Thumbnail: blue squircle matching the native .action-btn siblings.
-    // Two-class selectors beat core's single-class rules regardless of <style> order.
-    '.action-btn.resume-btn-small{background-color:rgba(33,150,243,.9);border-color:rgba(33,150,243,.5)}',
-    '.action-btn.resume-btn-small:hover{background-color:rgba(33,150,243,1)}',
-    '.lp-inject-play{display:inline-flex;align-items:center;justify-content:center}',
-    '.lp-inject-play svg{width:14px;height:14px}',
+    // Thumbnail: blue squircle. The core .action-btn box lives in a *scoped* <style>, so it
+    // never reaches this injected (non-Vue) button — replicate the full box here to match the
+    // native edit/delete siblings exactly (6px 8px pad + 1px border + 14px/1em icon → 32×28).
+    '.action-btn.resume-btn-small{display:inline-flex;align-items:center;justify-content:center;' +
+      'box-sizing:border-box;padding:6px 8px;font-size:14px;color:#fff;cursor:pointer;' +
+      'border:1px solid rgba(33,150,243,.5);border-radius:6px;background-color:rgba(33,150,243,.9)}',
+    '.action-btn.resume-btn-small:hover{background-color:rgba(33,150,243,1);border-color:rgba(33,150,243,.7)}',
     // Fallback overlay (when a card has no .action-buttons cluster).
-    '.lp-inject-play-overlay{position:absolute;top:8px;right:8px;z-index:31;opacity:0;transition:opacity .2s}',
+    '.lp-inject-play-overlay{position:absolute;top:8px;right:8px;z-index:31;opacity:0;transition:opacity .2s;display:inline-flex;align-items:center;justify-content:center}',
     '.audiobook-item:hover .lp-inject-play-overlay,.audiobook-poster-container:hover .lp-inject-play-overlay{opacity:1}',
     // Detail: blue accent over the native .nav-btn.icon-button shape.
     '.nav-btn.lp-detail-play{background-color:rgb(33,150,243);border-color:rgb(33,150,243)}',
@@ -131,6 +152,11 @@ export function startBooksPageInjector(): void {
   if (observer) return
   ensureStyles()
   scan(document)
+
+  // Keep every injected button's play/pause icon in sync with the player state.
+  const player = usePlayerStore()
+  watch([() => player.playing, () => player.current?.audiobookId], () => refreshIcons())
+
   observer = new MutationObserver((mutations) => {
     for (const m of mutations) {
       m.addedNodes.forEach((n) => {

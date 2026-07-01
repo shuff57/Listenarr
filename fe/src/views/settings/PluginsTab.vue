@@ -232,6 +232,11 @@ onMounted(load)
 .plugins-tab {
   max-width: 820px;
 }
+/* Core .btn sets align-items but not justify-content, so text left-aligns when a
+   button is wider than its label. Center it. */
+.btn {
+  justify-content: center;
+}
 .section-header {
   display: flex;
   align-items: center;
