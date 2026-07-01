@@ -548,6 +548,7 @@ function onLoadedMetadata() {
 function onTimeUpdate() {
   if (!el.value) return
   player.positionSeconds = el.value.currentTime
+  updatePositionState() // keep the lock-screen scrubber in sync
   player.save() // store throttles writes to 10s
   // Check sleep timer
   if (player.checkSleepTrigger()) {
@@ -667,6 +668,9 @@ watch(
     } else {
       el.value.pause()
     }
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = shouldPlay ? 'playing' : 'paused'
+    }
   },
   { flush: 'post' },
 )
@@ -718,6 +722,32 @@ function setupMediaSession() {
   navigator.mediaSession.setActionHandler('seekforward', () => { forward30() })
   navigator.mediaSession.setActionHandler('previoustrack', () => { prevFile() })
   navigator.mediaSession.setActionHandler('nexttrack', () => { nextFile() })
+  try {
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+      if (el.value && typeof details.seekTime === 'number') el.value.currentTime = details.seekTime
+    })
+  } catch {
+    // seekto unsupported on this browser — ignore
+  }
+  navigator.mediaSession.playbackState = player.playing ? 'playing' : 'paused'
+  updatePositionState()
+}
+
+// Publishes duration/position/rate so the lock screen shows an accurate scrubber.
+function updatePositionState() {
+  const ms = 'mediaSession' in navigator ? navigator.mediaSession : null
+  if (!ms || typeof ms.setPositionState !== 'function') return
+  const duration = player.duration
+  if (!duration || !Number.isFinite(duration)) return
+  try {
+    ms.setPositionState({
+      duration,
+      position: Math.min(Math.max(0, player.positionSeconds), duration),
+      playbackRate: player.rate || 1,
+    })
+  } catch {
+    // ignore transient invalid state (e.g. position briefly > duration mid-load)
+  }
 }
 
 // --- Keyboard shortcuts (global, ignored when focus is in text fields) ---
