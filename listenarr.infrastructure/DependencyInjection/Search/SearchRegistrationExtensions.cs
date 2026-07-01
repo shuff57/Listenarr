@@ -26,6 +26,12 @@ internal static class SearchRegistrationExtensions
         services.AddScoped<MetadataSourceCatalog>();
         services.AddScoped<SearchFinalDispositionLogger>();
         services.AddScoped<ISearchService, SearchService>();
+
+        services.AddScoped<IDomainReachabilityChecker, HttpDomainReachabilityChecker>();
+        services.AddScoped<IIndexerDomainRotationService, IndexerDomainRotationService>();
+        services.AddHttpClient("DomainReachability").ConfigurePrimaryHttpMessageHandler(
+            () => new HttpClientHandler { AllowAutoRedirect = true });
+
         return services;
     }
 
