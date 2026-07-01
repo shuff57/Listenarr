@@ -88,7 +88,13 @@ export async function loadInstalledPlugins(): Promise<void> {
   }
 
   for (const entry of manifest) {
-    for (const href of entry.styles ?? []) injectStyle(href)
-    if (entry.frontend) await injectScript(entry.frontend)
+    // Version-stamp asset URLs so a plugin update busts the browser cache (otherwise the
+    // fixed /plugins/<id>/ui/*.js URL serves the stale bundle after an in-place update).
+    for (const href of entry.styles ?? []) injectStyle(withVersion(href, entry.version))
+    if (entry.frontend) await injectScript(withVersion(entry.frontend, entry.version))
   }
+}
+
+function withVersion(url: string, version: string): string {
+  return `${url}${url.includes('?') ? '&' : '?'}v=${encodeURIComponent(version)}`
 }
